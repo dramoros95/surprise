@@ -226,7 +226,7 @@
 
     </div>
 
-    <script>
+<script>
         const noBtn = document.getElementById('noBtn');
         const yesBtn = document.getElementById('yesBtn');
         const msgBox = document.getElementById('messageBox');
@@ -266,7 +266,7 @@
             if (isBurst) {
                 heart.style.fontSize = (Math.random() * 25 + 15) + 'px';
                 heart.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                heart.style.bottom = '50%'; // Start bursting near the middle
+                heart.style.bottom = '50%'; 
             } else {
                 heart.style.fontSize = (Math.random() * 20 + 10) + 'px';
                 heart.style.animationDuration = (Math.random() * 5 + 5) + 's';
@@ -276,33 +276,34 @@
             setTimeout(() => heart.remove(), 7000);
         }
 
-        // Setup the No button for fixed coordinate movement
+        // Lock the No button layout and apply a slow, smooth animation
         window.addEventListener('load', () => {
             initBgHearts();
             
-            // Read initial position in the flexbox
             const rect = noBtn.getBoundingClientRect();
-            
-            // Lock dimensions on the container so the layout doesn't collapse
             document.getElementById('btnContainer').style.minWidth = document.getElementById('btnContainer').offsetWidth + 'px';
             
-            // Convert No button to fixed positioning for full-screen escaping
             noBtn.style.position = 'fixed';
             noBtn.style.left = rect.left + 'px';
             noBtn.style.top = rect.top + 'px';
             noBtn.style.margin = '0';
             
-            // Allow a tiny delay before adding the smooth transition so it doesn't jump
+            // This line makes it glide very slowly (1.2 seconds to move)
             setTimeout(() => {
-                noBtn.style.transition = 'all 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+                noBtn.style.transition = 'all 1.2s ease-out';
             }, 50);
         });
 
-        // Mouse distance tracking
+        // Mouse & Touch distance tracking
         document.addEventListener('mousemove', (e) => checkDistance(e.clientX, e.clientY));
-        document.addEventListener('touchstart', (e) => checkDistance(e.touches[0].clientX, e.touches[0].clientY));
+        document.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                checkDistance(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        });
 
         function checkDistance(cursorX, cursorY) {
+            // Stop tracking if already moving or game won
             if (successState.classList.contains('show') || isMoving) return;
 
             const rect = noBtn.getBoundingClientRect();
@@ -310,46 +311,40 @@
             const btnCenterY = rect.top + rect.height / 2;
             const distance = Math.hypot(cursorX - btnCenterX, cursorY - btnCenterY);
 
-            // 120px trigger radius
+            // You have to get within 60px now before it triggers
             if (distance < 60) {
                 moveNoBtn();
             }
         }
 
         function moveNoBtn() {
-    isMoving = true;
-    
-    // Get the most accurate window size (fixes mobile browser bar issues)
-    const screenWidth = document.documentElement.clientWidth;
-    const screenHeight = document.documentElement.clientHeight;
-    
-    // Create a thicker invisible border (50px) so it never touches the screen edge
-    const safeZone = 50; 
-    
-    const maxX = screenWidth - noBtn.offsetWidth - safeZone;
-    const maxY = screenHeight - noBtn.offsetHeight - safeZone;
+            isMoving = true; // Lock it so it doesn't spasm
+            
+            // Create a massive 80-pixel invisible border so it never hits the edge
+            const safeZone = 80; 
+            
+            const maxX = window.innerWidth - noBtn.offsetWidth - safeZone;
+            const maxY = window.innerHeight - noBtn.offsetHeight - safeZone;
 
-    // Generate random coordinates strictly inside our safe fence
-    const randomX = Math.floor(Math.random() * (maxX - safeZone)) + safeZone;
-    const randomY = Math.floor(Math.random() * (maxY - safeZone)) + safeZone;
+            // Force coordinates to strictly stay inside the safe zone limits
+            const randomX = Math.max(safeZone, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(safeZone, Math.floor(Math.random() * maxY));
 
-    noBtn.style.left = randomX + 'px';
-    noBtn.style.top = randomY + 'px';
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
 
-    escapeCount++;
-    updateProgressiveEffects();
+            escapeCount++;
+            updateProgressiveEffects();
 
-    // Prevent rapid re-triggering while moving
-    setTimeout(() => { isMoving = false; }, 300);
-}
+            // Put the button on a 1-second "cooldown" before it can move again
+            setTimeout(() => { isMoving = false; }, 1000);
+        }
 
         function updateProgressiveEffects() {
-            // Update message
             msgBox.innerText = messages[Math.floor(Math.random() * messages.length)];
             
-            // Adjust sizes
             yesScale += 0.08;
-            noScale = Math.max(0.6, noScale - 0.05); // Limit how small it can get
+            noScale = Math.max(0.6, noScale - 0.05); 
             yesGlow += 4;
 
             yesBtn.style.transform = `scale(${yesScale})`;
@@ -357,34 +352,24 @@
             noBtn.style.transform = `scale(${noScale})`;
         }
 
-        // Yes Button Click handling
+        // Yes Button Success Setup
         yesBtn.addEventListener('click', () => {
-            // Hide the No button immediately so it doesn't get stuck
             noBtn.style.display = 'none';
-            
-            // Fade out the question state
             questionState.classList.add('fade-out');
             
             setTimeout(() => {
                 questionState.classList.add('hidden');
-                
-                // Show success state
                 successState.classList.remove('hidden');
-                setTimeout(() => {
-                    successState.classList.add('show');
-                }, 50);
-                
+                setTimeout(() => { successState.classList.add('show'); }, 50);
                 triggerCelebration();
             }, 500);
         });
 
         function triggerCelebration() {
-            // Heart Burst
             for (let i = 0; i < 40; i++) {
                 setTimeout(() => createHeart(true), i * 30);
             }
 
-            // Confetti
             const colors = ['#FFB6C1', '#FFC0CB', '#FF69B4', '#FFDEE9', '#E0C3FC', '#FFFFFF'];
             const container = document.getElementById('confetti-container');
             
@@ -394,12 +379,9 @@
                 confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
                 confetti.style.left = Math.random() * 100 + 'vw';
                 
-                // Random sizes
                 const size = Math.random() * 8 + 6;
                 confetti.style.width = size + 'px';
                 confetti.style.height = (size * 1.5) + 'px';
-                
-                // Random fall speeds and delays
                 confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
                 confetti.style.animationDelay = Math.random() * 1.5 + 's';
                 
