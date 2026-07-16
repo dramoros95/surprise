@@ -317,24 +317,31 @@
         }
 
         function moveNoBtn() {
-            isMoving = true;
-            
-            const safePadding = 30;
-            const maxX = window.innerWidth - noBtn.offsetWidth - safePadding;
-            const maxY = window.innerHeight - noBtn.offsetHeight - safePadding;
+    isMoving = true;
+    
+    // Get the most accurate window size (fixes mobile browser bar issues)
+    const screenWidth = document.documentElement.clientWidth;
+    const screenHeight = document.documentElement.clientHeight;
+    
+    // Create a thicker invisible border (50px) so it never touches the screen edge
+    const safeZone = 50; 
+    
+    const maxX = screenWidth - noBtn.offsetWidth - safeZone;
+    const maxY = screenHeight - noBtn.offsetHeight - safeZone;
 
-            const randomX = Math.max(safePadding, Math.floor(Math.random() * maxX));
-            const randomY = Math.max(safePadding, Math.floor(Math.random() * maxY));
+    // Generate random coordinates strictly inside our safe fence
+    const randomX = Math.floor(Math.random() * (maxX - safeZone)) + safeZone;
+    const randomY = Math.floor(Math.random() * (maxY - safeZone)) + safeZone;
 
-            noBtn.style.left = randomX + 'px';
-            noBtn.style.top = randomY + 'px';
+    noBtn.style.left = randomX + 'px';
+    noBtn.style.top = randomY + 'px';
 
-            escapeCount++;
-            updateProgressiveEffects();
+    escapeCount++;
+    updateProgressiveEffects();
 
-            // Prevent rapid re-triggering while moving
-            setTimeout(() => { isMoving = false; }, 300);
-        }
+    // Prevent rapid re-triggering while moving
+    setTimeout(() => { isMoving = false; }, 300);
+}
 
         function updateProgressiveEffects() {
             // Update message
