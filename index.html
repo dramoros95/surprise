@@ -317,29 +317,24 @@
             }
         }
 
-        function moveNoBtn() {
-            isMoving = true; // Lock it so it doesn't spasm
+function moveNoBtn() {
+            isMoving = true; 
             
-            // Create a massive 80-pixel invisible border so it never hits the edge
-            const safeZone = 80; 
-            
-            const maxX = window.innerWidth - noBtn.offsetWidth - safeZone;
-            const maxY = window.innerHeight - noBtn.offsetHeight - safeZone;
+            // Abandoning pixels! We use percentages to make it immune to screen size changes.
+            // Math.random() * 65 + 10 generates a random number between 10 and 75.
+            const randomX = Math.floor(Math.random() * 65) + 10; 
+            const randomY = Math.floor(Math.random() * 65) + 10; 
 
-            // Force coordinates to strictly stay inside the safe zone limits
-            const randomX = Math.max(safeZone, Math.floor(Math.random() * maxX));
-            const randomY = Math.max(safeZone, Math.floor(Math.random() * maxY));
-
-            noBtn.style.left = randomX + 'px';
-            noBtn.style.top = randomY + 'px';
+            // Apply the position in viewport percentages (vw/vh)
+            noBtn.style.left = randomX + 'vw';
+            noBtn.style.top = randomY + 'vh';
 
             escapeCount++;
             updateProgressiveEffects();
 
-            // Put the button on a 1-second "cooldown" before it can move again
+            // 1-second cooldown so it glides smoothly and doesn't freak out
             setTimeout(() => { isMoving = false; }, 1000);
         }
-
         function updateProgressiveEffects() {
             msgBox.innerText = messages[Math.floor(Math.random() * messages.length)];
             
